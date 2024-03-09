@@ -163,7 +163,7 @@ predict_snpnet <- function(fit = NULL, saved_path = NULL, new_genotype_file, new
 
   response <- list()
   for (split in split_name) {
-    response[[split]] <- phe[[split]][[phenotype]]
+    response[[split]] <- phe[[split]][, ..phenotype]
   }
 
   for (split in split_name) {
@@ -205,7 +205,7 @@ computeLambdas <- function(score, nlambda, lambda.min.ratio) {
 }
 
 inferFamily <- function(phe, phenotype, status){
-    if (all(unique(phe[[phenotype]] %in% c(0, 1, 2, -9)))) {
+    if (all(unique(phe[, ..phenotype] %in% c(0, 1, 2, -9)))) {
         family <- "binomial"
     } else if(!is.null(status) && (status %in% colnames(phe))) {
         family <- "cox"
