@@ -208,7 +208,7 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
     snpnetLogger("Iteration 0")
     if (family == "cox"){
         glmmod <- glmnet::glmnet(as.matrix(features[['train']]), surv[['train']], family="cox", standardize=F, lambda=c(0))
-        residual <- computeCoxgrad(stats::predict(glmmod, newx=as.matrix(features[['train']])), response[['train']], status[['train']])
+        residual <- computeCoxgrad(stats::predict(glmmod, newx=as.matrix(features[['train']])), unlist(response[['train']]), status[['train']])
     } else {
         glmmod <- stats::glm(
             stats::as.formula(paste(phenotype, " ~ ", paste(c(1, covariates), collapse = " + "))),
@@ -359,17 +359,17 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
           residual <- computeCoxgrad(pred.train, response[['train']], status[['train']])
       } else {
           glmfit <- glmnetPlus::glmnet(
-              features[['train']], response[['train']], family = family, alpha = alpha,
+              features[['train']], unlist(response[['train']]), family = family, alpha = alpha,
               lambda = current.lams.adjusted[start.lams:num.lams], penalty.factor = penalty.factor,
               standardize = configs[['standardize.variant']], thresh = configs[['glmnet.thresh']],
               type.gaussian = "naive", beta0 = beta0
           )
           if(family=="gaussian"){
               residual <- glmfit$residuals
-              pred.train <- response[['train']] - residual
+              pred.train <- unlist(response[['train']]) - residual
           }else{
               pred.train <- stats::predict(glmfit, newx = as.matrix(features[['train']]), type = "response")
-              residual <- response[['train']] - pred.train
+              residual <- unlist(response[['train']]) - pred.train
           }
       }
 
@@ -386,13 +386,13 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
             residual <- computeCoxgrad(pred.train, response[['train']], status[['train']])
         }else{
             glmfit <- glmnet::glmnet(
-                tmp.features.matrix, response[['train']], family = family, alpha = alpha,
+                tmp.features.matrix, unlist(response[['train']]), family = family, alpha = alpha,
                 lambda = current.lams.adjusted[start.lams:num.lams], penalty.factor = penalty.factor,
                 standardize = configs[['standardize.variant']], thresh = configs[['glmnet.thresh']],
                 type.gaussian = "naive"
             )
             pred.train <- stats::predict(glmfit, newx = tmp.features.matrix, type = "response")
-            residual <- response[['train']] - pred.train
+            residual <- unlist(response[['train']]) - pred.train
         }
         rm(tmp.features.matrix) # save memory
     }
@@ -464,7 +464,7 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
           if (validation) metric.val[start.lams:max.valid.idx] <- computeMetric(pred.val, surv[['val']], configs[['metric']])
       } else {
           snpnetLogger('metric train')
-          metric.train[start.lams:max.valid.idx] <- computeMetric(pred.train[, 1:check.obj[["max.valid.idx"]], drop = F], response[['train']], configs[['metric']])
+          metric.train[start.lams:max.valid.idx] <- computeMetric(pred.train[, 1:check.obj[["max.valid.idx"]], drop = F], unlist(response[['train']]), configs[['metric']])
           if (validation){
               snpnetLogger('metric val.')
               metric.val[start.lams:max.valid.idx] <- computeMetric(pred.val, response[['val']], configs[['metric']])
