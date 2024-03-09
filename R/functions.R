@@ -228,7 +228,7 @@ readIDsFromPsam <- function(psam){
     }
     df <- df %>%
     dplyr::rename('FID' = '#FID') %>%
-    dplyr::mutate(ID = paste(FID, IID, sep='_'))
+    dplyr::mutate(ID = paste(FID, IID, sep="/"))
     df$ID
 }
 
@@ -245,7 +245,7 @@ cat_or_zcat <- function(filename, configs=list(zstdcat.path='zstdcat', zcat.path
 readPlinkKeepFile <- function(keep_file){
     ID <- NULL  # to deal with "no visible binding for global variable"
     keep_df <- data.table::fread(keep_file, colClasses='character', stringsAsFactors=F)
-    keep_df$ID <- paste(keep_df$V1, keep_df$V2, sep = "_")
+    keep_df$ID <- paste(keep_df$V1, keep_df$V2, sep = "/")
     keep_df %>% dplyr::pull(ID)
 }
 
@@ -292,7 +292,7 @@ readPheMaster <- function(phenotype.file, psam.ids, family, covariates, phenotyp
       cmd=paste(cat_or_zcat(phenotype.file, configs), phenotype.file, ' | sed -e "s/^#//g"'),
       colClasses = c("FID" = "character", "IID" = "character"), select = selectCols
     )
-    phe.master.unsorted$ID <- paste(phe.master.unsorted$FID, phe.master.unsorted$IID, sep = "_")
+    phe.master.unsorted$ID <- paste(phe.master.unsorted$FID, phe.master.unsorted$IID, sep = "/")
 
     # make sure the phe.master has the same individual ordering as in the genotype data
     # so that we don't have error when opening pgen file with sample subset option.
@@ -368,7 +368,7 @@ computeStats <- function(pfile, ids, configs) {
   } else {
       # To run plink2 --geno-counts, we write the list of IDs to a file
       data.frame(ID = ids) %>%
-      tidyr::separate(ID, into=c('FID', 'IID'), sep='_') %>%
+      tidyr::separate(ID, into=c('FID', 'IID'), sep="/") %>%
       data.table::fwrite(keep_f, sep='\t', col.names=F)
 
       # Run plink2 --geno-counts
@@ -454,7 +454,7 @@ computeProduct <- function(residual, pfile, vars, stats, configs, iter) {
   colnames(residual_df) <- paste0('lambda_idx_', colnames(residual))
   residual_df %>%
     tibble::rownames_to_column("ID") %>%
-    tidyr::separate(ID, into=c('#FID', 'IID'), sep='_') %>%
+    tidyr::separate(ID, into=c('#FID', 'IID'), sep="/") %>%
     data.table::fwrite(residual_f, sep='\t', col.names=T)
 
   # Run plink2 --geno-counts
