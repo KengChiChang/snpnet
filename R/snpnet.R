@@ -144,8 +144,8 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
       # For glmnet, we map this to 1/0 (case/control)
       # The following expression will replace -9 (missing) with -10, but
       # the set of individuals with no-missing values are already computed.
-    if (min(phe[['master']][[phenotype]], na.rm = T) >= 1 && max(phe[['master']][[phenotype]], na.rm = T) <= 2) {
-      phe[['master']][[phenotype]] <- phe[['master']][[phenotype]] - 1
+    if (min(phe[['master']][, ..phenotype], na.rm = T) >= 1 && max(phe[['master']][, ..phenotype], na.rm = T) <= 2) {
+      phe[['master']][, ..phenotype] <- phe[['master']][, ..phenotype] - 1
     }
   }
 
@@ -156,7 +156,7 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
   }else{
       splits <- c('train', 'val')
       for(s in splits){
-          ids[[s]] <- phe[['master']]$ID[ phe[['master']][[split.col]] == s ]
+          ids[[s]] <- phe[['master']]$ID[ phe[['master']][, ..split.col] == s ]
       }
   }
 
@@ -176,9 +176,9 @@ snpnet <- function(genotype.pfile, phenotype.file, phenotype, family = NULL, cov
   ### --- Prepare the response --- ###
   response <- list() ; status <- list() ; surv <- list() ; pred <- list()
   for(s in splits){
-      response[[s]] <- phe[[s]][[phenotype]]
+      response[[s]] <- phe[[s]][, ..phenotype]
       if (family == "cox") {
-          status[[s]] <- phe[[s]][[status.col]]
+          status[[s]] <- phe[[s]][, ..status.col]
           surv[[s]] <- survival::Surv(response[[s]], status[[s]])
       }
   }
